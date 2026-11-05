@@ -93,6 +93,18 @@ class _ProfileTabState extends State<ProfileTab> {
     await widget.onProfileChanged();
   }
 
+  Future<void> _changePassword() async {
+    final changed = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _ChangePasswordDialog(),
+    );
+    if (changed == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password changed.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profile = widget.profile;
@@ -205,9 +217,106 @@ class _ProfileTabState extends State<ProfileTab> {
         ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
+          onPressed: _changePassword,
+          icon: const Icon(Icons.lock_outline),
+          label: const Text('Change password'),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
           onPressed: () => supabase.auth.signOut(),
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
+        ),
+      ],
+    );
+  }
+}
+
+/// A logged-in member changing their own password directly — no email or
+/// code needed, unlike the logged-out "Forgot password?" flow, since
+/// they're already authenticated and Supabase allows updating your own
+/// password straight from an active session.
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+
+    try {
+      await supabase.auth.updateUser(UserAttributes(password: _passwordController.text));
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      setState(() => _error = 'Could not change your password. Try again.');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Change password'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_error != null) ...[
+              Text(_error!, style: TextStyle(color: Colors.red.shade700, fontSize: 12)),
+              const SizedBox(height: 8),
+            ],
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'New password'),
+              validator: (v) => (v == null || v.length < 6) ? 'At least 6 characters' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _confirmController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Confirm new password'),
+              validator: (v) => (v != _passwordController.text) ? 'Passwords do not match' : null,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _submitting ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submitting ? null : _submit,
+          child: _submitting
+              ? const SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Text('Save'),
         ),
       ],
     );

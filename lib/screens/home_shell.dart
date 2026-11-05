@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,8 +31,12 @@ class _HomeShellState extends State<HomeShell> {
     super.initState();
     // Runs once per app open, after the first frame so a dialog has a
     // ready context to show into. Silent by design if there's nothing new
-    // or the check can't complete — see checkForUpdate().
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowUpdateDialog());
+    // or the check can't complete — see checkForUpdate(). Skipped entirely
+    // on web: there's no APK to install in a browser, and a web deploy
+    // just takes effect automatically on the next page load.
+    if (!kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowUpdateDialog());
+    }
   }
 
   Future<void> _maybeShowUpdateDialog() async {

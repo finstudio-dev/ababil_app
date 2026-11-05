@@ -1,11 +1,11 @@
 {
-    "name": "ababil_app",
-    "short_name": "ababil_app",
+    "name": "Ababil",
+    "short_name": "Ababil",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Ababil — group savings fund member app.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

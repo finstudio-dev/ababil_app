@@ -15,7 +15,7 @@ class AppConfig {
   // publish, e.g. v1.1.0) every time you build and release a new APK — the
   // in-app update checker compares this against the latest GitHub release
   // to decide whether to prompt members to update.
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.2.0';
 
   // owner/repo of the GitHub repository releases are published to. Must be
   // a PUBLIC repo: the update checker calls GitHub's public releases API

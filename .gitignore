@@ -30,7 +30,12 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+/build/*
+# The compiled web app (build/web) IS tracked and committed — it's what
+# Vercel serves for the web version of the app, with no Flutter build step
+# on Vercel's side. Every other build output (Android, iOS, etc.) stays
+# ignored as normal.
+!/build/web/
 /coverage/
 
 # Symbolication related
